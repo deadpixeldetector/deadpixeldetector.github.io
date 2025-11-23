@@ -1,0 +1,511 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title data-i18n="meta-title">Monitor Test Pro - Herramienta de Calidad de Pantalla</title>
+    <meta name="description" data-i18n="meta-description" content="Verifica la calidad de tu monitor, encuentra píxeles muertos y mide tus Hz reales.">
+    <style>
+        /* --- CONFIGURACIÓN BASE --- */
+        :root {
+            --bg-color: #121212;
+            --panel-bg: #1e1e1e;
+            --text-main: #ffffff;
+            --text-muted: #b0b0b0;
+            --accent: #00e5ff;
+            --sidebar-width: 200px;
+        }
+
+        * { margin: 0; padding: 0; box-sizing: border-box; font-family: 'Segoe UI', Roboto, Helvetica, Arial, sans-serif; }
+
+        body {
+            background-color: var(--bg-color);
+            color: var(--text-main);
+            overflow-x: hidden;
+        }
+
+        body.no-scroll {
+            overflow: hidden;
+        }
+
+        /* --- LAYOUT PRINCIPAL Y SIDEBARS (SIN CAMBIOS) --- */
+        .main-layout {
+            display: flex;
+            min-height: 100vh;
+            position: relative; /* Para posicionar el selector de idioma */
+        }
+
+        .ad-sidebar {
+            width: var(--sidebar-width);
+            background-color: #181818;
+            border-left: 1px solid #333;
+            border-right: 1px solid #333;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            padding-top: 100px;
+            flex-shrink: 0;
+        }
+
+        .ad-placeholder {
+            width: 160px;
+            height: 600px;
+            background-color: #252525;
+            border: 2px dashed #444;
+            color: #666;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            text-align: center;
+            font-size: 0.8rem;
+        }
+
+        .content-area {
+            flex-grow: 1;
+            padding: 40px;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            max-width: 100%;
+        }
+
+        header { text-align: center; margin-bottom: 40px; }
+        h1 { font-size: 2.2rem; color: var(--text-main); margin-bottom: 10px; }
+        .subtitle { color: var(--accent); font-size: 1.1rem; font-weight: 500; }
+        
+        /* --- SELECTOR DE IDIOMA (NUEVO) --- */
+        .language-selector {
+            position: absolute;
+            top: 20px;
+            right: 20px;
+            z-index: 1000;
+        }
+
+        .language-selector button {
+            background: var(--panel-bg);
+            border: 1px solid #444;
+            color: var(--text-main);
+            padding: 8px 12px;
+            margin-left: 5px;
+            cursor: pointer;
+            border-radius: 6px;
+            font-weight: bold;
+            transition: background 0.2s, border-color 0.2s;
+        }
+
+        .language-selector button:hover {
+            background: #2a2a2a;
+            border-color: var(--accent);
+        }
+
+        .language-selector button.active {
+            border-color: var(--accent);
+            background: #0088aa;
+        }
+
+        /* --- CAJA DE HZ --- */
+        .hz-card {
+            background: linear-gradient(145deg, #2a2a2a, #1e1e1e);
+            padding: 25px 50px;
+            border-radius: 15px;
+            box-shadow: 0 10px 20px rgba(0,0,0,0.4);
+            text-align: center;
+            margin-bottom: 40px;
+            border: 1px solid #333;
+            position: relative;
+            overflow: hidden;
+        }
+        
+        .hz-card::after {
+            content: '';
+            position: absolute;
+            bottom: 0;
+            left: 0;
+            width: 100%;
+            height: 4px;
+            background: var(--accent);
+            animation: scan 2s linear infinite;
+        }
+        @keyframes scan { 0% {transform: translateX(-100%);} 100% {transform: translateX(100%);} }
+
+        .hz-value { font-size: 4rem; font-weight: 800; color: #fff; line-height: 1; }
+        .hz-label { font-size: 0.9rem; color: var(--text-muted); letter-spacing: 2px; text-transform: uppercase; margin-top: 5px; }
+
+        /* --- SECCIÓN DE INSTRUCCIONES --- */
+        .instructions {
+            background-color: rgba(255,255,255,0.05);
+            border-radius: 10px;
+            padding: 20px;
+            max-width: 700px;
+            width: 100%;
+            margin-bottom: 30px;
+            border-left: 4px solid var(--accent);
+        }
+        
+        .instructions h3 { margin-bottom: 15px; font-size: 1.2rem; display: flex; align-items: center; gap: 10px; }
+        
+        .steps-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr 1fr;
+            gap: 20px;
+        }
+
+        .step { font-size: 0.9rem; color: var(--text-muted); line-height: 1.4; }
+        .step strong { color: white; display: block; margin-bottom: 5px; }
+
+        /* --- BOTONES DE PRUEBA --- */
+        .test-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(100px, 1fr));
+            gap: 20px;
+            width: 100%;
+            max-width: 800px;
+            margin-bottom: 50px;
+        }
+
+        .test-card {
+            background: var(--panel-bg);
+            padding: 15px;
+            border-radius: 10px;
+            text-align: center;
+            cursor: pointer;
+            transition: transform 0.2s, background 0.2s;
+            border: 1px solid #333;
+        }
+
+        .test-card:hover { transform: translateY(-5px); background: #2c2c2c; border-color: var(--accent); }
+
+        .color-circle {
+            width: 40px;
+            height: 40px;
+            border-radius: 50%;
+            margin: 0 auto 10px;
+            border: 2px solid #444;
+        }
+
+        .test-name { font-size: 0.9rem; font-weight: bold; margin-bottom: 4px; }
+        .test-desc { font-size: 0.75rem; color: var(--text-muted); }
+
+        /* --- SEO TEXT --- */
+        .seo-article { max-width: 800px; line-height: 1.7; color: #ccc; font-size: 0.95rem; }
+        .seo-article h2 { color: white; margin-top: 30px; margin-bottom: 10px; font-size: 1.5rem; }
+        
+        /* --- PANTALLA COMPLETA (Overlay) --- */
+        #test-overlay {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100vw;
+            height: 100vh;
+            z-index: 9999;
+            display: none;
+            cursor: none;
+        }
+
+        #exit-hint {
+            position: absolute;
+            top: 20px;
+            left: 50%;
+            transform: translateX(-50%);
+            background: rgba(0,0,0,0.6);
+            color: white;
+            padding: 10px 20px;
+            border-radius: 20px;
+            font-size: 0.9rem;
+            pointer-events: none;
+            opacity: 0;
+            animation: hintFade 4s forwards;
+        }
+
+        @keyframes hintFade {
+            0% { opacity: 0; top: 0px; }
+            20% { opacity: 1; top: 20px; }
+            80% { opacity: 1; }
+            100% { opacity: 0; }
+        }
+
+        /* --- RESPONSIVE (MOVIL) --- */
+        @media (max-width: 900px) {
+            .main-layout { flex-direction: column; }
+            .ad-sidebar { 
+                width: 100%; 
+                height: auto; 
+                padding: 20px; 
+                flex-direction: row; 
+                justify-content: center; 
+                border: none;
+                border-bottom: 1px solid #333;
+            }
+            .ad-sidebar.left { order: -1; }
+            .ad-sidebar.right { order: 2; }
+            .ad-placeholder { width: 300px; height: 100px; }
+            .steps-grid { grid-template-columns: 1fr; }
+            .language-selector { top: 10px; right: 10px; }
+        }
+
+    </style>
+</head>
+<body>
+
+    <div class="language-selector">
+        <button id="lang-es" data-lang="es" class="active">Español</button>
+        <button id="lang-en" data-lang="en">English</button>
+    </div>
+
+    <div class="main-layout">
+
+        <aside class="ad-sidebar left">
+            <div class="ad-placeholder">
+                <span data-i18n="ad-slot">Espacio para Anuncio (Google Adsense)</span>
+            </div>
+        </aside>
+
+        <main class="content-area">
+            
+            <header>
+                <h1 data-i18n="h1-title">Monitor Test Pro</h1>
+                <p class="subtitle" data-i18n="h1-subtitle">Suite de diagnóstico de pantalla y Hz</p>
+            </header>
+
+            <!-- <div class="hz-card">
+                <div class="hz-value" id="hz-counter">...</div>
+                <div class="hz-label" data-i18n="hz-label">Tasa de Refresco Real</div>
+            </div> -->
+
+            <section class="instructions">
+                <h3 data-i18n="guide-title">📊 Guía Rápida de Uso</h3>
+                <div class="steps-grid">
+                    <div class="step">
+                        <strong data-i18n="step1-title">1. Limpia tu pantalla</strong>
+                        <span data-i18n="step1-desc">Asegurese de que su pantalla este limpia para no confundir el polvo con pixeles muertos.</span>
+                    </div>
+                    <div class="step">
+                        <strong data-i18n="step2-title">2. Elige un Test</strong>
+                        <span data-i18n="step2-desc">Usa los botones de abajo. La pantalla se pondrá de un solo color.</span>
+                    </div>
+                    <div class="step">
+                        <strong data-i18n="step3-title">3. Inspecciona</strong>
+                        <span data-i18n="step3-desc">Busca puntos negros (muertos) o de otro color (atascados). Pulsa ESC para salir.</span>
+                    </div>
+                </div>
+            </section>
+
+            <div class="test-grid">
+                <div class="test-card" onclick="startTest('#ffffff')">
+                    <div class="color-circle" style="background: #ffffff;"></div>
+                    <div class="test-name" data-i18n="test-white-title">Blanco Puro</div>
+                    <div class="test-desc" data-i18n="test-white-desc">Para ver brillo y uniformidad</div>
+                </div>
+                <div class="test-card" onclick="startTest('#000000')">
+                    <div class="color-circle" style="background: #000000; border-color: #555;"></div>
+                    <div class="test-name" data-i18n="test-black-title">Negro Total</div>
+                    <div class="test-desc" data-i18n="test-black-desc">Para fugas de luz y píxeles atascados</div>
+                </div>
+                <div class="test-card" onclick="startTest('#ff0000')">
+                    <div class="color-circle" style="background: #ff0000;"></div>
+                    <div class="test-name" data-i18n="test-red-title">Rojo</div>
+                    <div class="test-desc" data-i18n="test-red-desc">Subpíxel Rojo</div>
+                </div>
+                <div class="test-card" onclick="startTest('#00ff00')">
+                    <div class="color-circle" style="background: #00ff00;"></div>
+                    <div class="test-name" data-i18n="test-green-title">Verde</div>
+                    <div class="test-desc" data-i18n="test-green-desc">Subpíxel Verde</div>
+                </div>
+                <div class="test-card" onclick="startTest('#0000ff')">
+                    <div class="color-circle" style="background: #0000ff;"></div>
+                    <div class="test-name" data-i18n="test-blue-title">Azul</div>
+                    <div class="test-desc" data-i18n="test-blue-desc">Subpíxel Azul</div>
+                </div>
+            </div>
+
+            <!-- <article class="seo-article">
+                <h2 data-i18n="seo-h2-hz">¿Qué es la Tasa de Refresco (Hz)?</h2>
+                <p data-i18n="seo-p-hz">La tasa de refresco es la cantidad de veces que tu monitor actualiza la imagen por segundo. Un monitor estándar tiene 60Hz, mientras que los monitores gaming suelen tener 144Hz o más, lo que ofrece movimientos más fluidos.</p>
+                 -->
+                <h2 data-i18n="seo-h2-stuck">¿Cómo arreglar un píxel atascado?</h2>
+                <p data-i18n="seo-p-stuck">Si ves un punto de color (rojo, verde o azul) que no cambia, es un píxel atascado. A veces se soluciona utilizando herramientas que cambian de color rápidamente en esa zona para "despertar" el transistor del monitor.</p>
+            </article>
+
+        </main>
+
+        <aside class="ad-sidebar right">
+            <div class="ad-placeholder">
+                <span data-i18n="ad-slot">Espacio para Anuncio (Google Adsense)</span>
+            </div>
+        </aside>
+
+    </div>
+
+    <div id="test-overlay">
+        <div id="exit-hint" data-i18n="exit-hint">Presiona ESC o haz Clic para salir</div>
+    </div>
+
+    <script>
+        // --- 1. DICCIONARIO DE TRADUCCIONES ---
+        const translations = {
+            'es': {
+                'meta-title': 'Monitor Test Pro - Herramienta de Calidad de Pantalla',
+                'meta-description': 'Verifica la calidad de tu monitor, encuentra píxeles muertos y mide tus Hz reales.',
+                'h1-title': 'Monitor Test Pro',
+                'h1-subtitle': 'Suite de diagnóstico de pantalla y Hz',
+                'hz-label': 'Tasa de Refresco Real',
+                'guide-title': '📊 Guía Rápida de Uso',
+                'step1-title': '1. Limpia tu pantalla',
+                'step1-desc': 'Asegúrese de que su pantalla está limpia para no confundir el polvo con píxeles muertos.',
+                'step2-title': '2. Elige un Test',
+                'step2-desc': 'Usa los botones de abajo. La pantalla se pondrá de un solo color.',
+                'step3-title': '3. Inspecciona',
+                'step3-desc': 'Busca puntos negros (muertos) o de otro color (atascados). Pulsa ESC para salir.',
+                'test-white-title': 'Blanco Puro',
+                'test-white-desc': 'Para ver brillo y uniformidad',
+                'test-black-title': 'Negro Total',
+                'test-black-desc': 'Para fugas de luz y píxeles atascados',
+                'test-red-title': 'Rojo',
+                'test-red-desc': 'Subpíxel Rojo',
+                'test-green-title': 'Verde',
+                'test-green-desc': 'Subpíxel Verde',
+                'test-blue-title': 'Azul',
+                'test-blue-desc': 'Subpíxel Azul',
+                'seo-h2-hz': '¿Qué es la Tasa de Refresco (Hz)?',
+                'seo-p-hz': 'La tasa de refresco es la cantidad de veces que tu monitor actualiza la imagen por segundo. Un monitor estándar tiene 60Hz, mientras que los monitores gaming suelen tener 144Hz o más, lo que ofrece movimientos más fluidos.',
+                'seo-h2-stuck': '¿Cómo arreglar un píxel atascado?',
+                'seo-p-stuck': 'Si ves un punto de color (rojo, verde o azul) que no cambia, es un píxel atascado. A veces se soluciona utilizando herramientas que cambian de color rápidamente en esa zona para "despertar" el transistor del monitor.',
+                'exit-hint': 'Presiona ESC o haz Clic para salir',
+                'ad-slot': 'Espacio para Anuncio (Google Adsense)'
+            },
+            'en': {
+                'meta-title': 'Monitor Test Pro - Screen Quality Tool',
+                'meta-description': 'Check your monitor quality, find dead pixels, and measure your real Hz.',
+                'h1-title': 'Monitor Test Pro',
+                'h1-subtitle': 'Screen and Hz Diagnostic Suite',
+                'hz-label': 'Real Refresh Rate',
+                'guide-title': '📊 Quick Use Guide',
+                'step1-title': '1. Clean your screen',
+                'step1-desc': 'Make sure your screen is clean so you do not mistake dust for dead pixels.',
+                'step2-title': '2. Choose a Test',
+                'step2-desc': 'Use the buttons below. The screen will turn into a solid color.',
+                'step3-title': '3. Inspect',
+                'step3-desc': 'Look for black dots (dead) or other colors (stuck). Press ESC to exit.',
+                'test-white-title': 'Pure White',
+                'test-white-desc': 'To check brightness and uniformity',
+                'test-black-title': 'Total Black',
+                'test-black-desc': 'To check for light bleeding and stuck pixels',
+                'test-red-title': 'Red',
+                'test-red-desc': 'Red Subpixel',
+                'test-green-title': 'Green',
+                'test-green-desc': 'Green Subpixel',
+                'test-blue-title': 'Blue',
+                'test-blue-desc': 'Blue Subpixel',
+                'seo-h2-hz': 'What is Refresh Rate (Hz)?',
+                'seo-p-hz': 'Refresh rate is the number of times your monitor updates the image per second. A standard monitor has 60Hz, while gaming monitors usually have 144Hz or more, offering smoother motion.',
+                'seo-h2-stuck': 'How to fix a stuck pixel?',
+                'seo-p-stuck': 'If you see a color dot (red, green, or blue) that doesn\'t change, it is a stuck pixel. Sometimes it can be fixed by using tools that flash colors quickly in that area to "wake up" the monitor\'s transistor.',
+                'exit-hint': 'Press ESC or Click to exit',
+                'ad-slot': 'Ad Slot (Google Adsense)'
+            }
+        };
+
+        let currentLang = 'es'; // Idioma por defecto
+
+        // --- 2. FUNCIÓN DE TRADUCCIÓN ---
+        function setLanguage(lang) {
+            currentLang = lang;
+            document.documentElement.lang = lang; // Cambia el atributo lang del HTML
+            
+            // Actualiza el título de la pestaña y la meta descripción
+            document.querySelector('title').textContent = translations[lang]['meta-title'];
+            document.querySelector('meta[name="description"]').content = translations[lang]['meta-description'];
+
+            // Recorre todos los elementos que necesitan traducción
+            document.querySelectorAll('[data-i18n]').forEach(element => {
+                const key = element.getAttribute('data-i18n');
+                if (translations[lang][key]) {
+                    // Para elementos que pueden tener HTML (como strong) usamos innerHTML
+                    element.innerHTML = translations[lang][key]; 
+                }
+            });
+
+            // Actualizar botones activos
+            document.querySelectorAll('.language-selector button').forEach(button => {
+                button.classList.remove('active');
+                if (button.getAttribute('data-lang') === lang) {
+                    button.classList.add('active');
+                }
+            });
+        }
+
+        // --- 3. EVENT LISTENERS PARA EL SELECTOR ---
+        document.getElementById('lang-es').addEventListener('click', () => setLanguage('es'));
+        document.getElementById('lang-en').addEventListener('click', () => setLanguage('en'));
+
+        // --- 4. LÓGICA DEL SISTEMA (HZ y PANTALLA COMPLETA) ---
+
+        // Función que se ejecuta al cargar la página (para asegurar la traducción inicial)
+        window.addEventListener('load', () => {
+            // Intenta detectar el idioma del navegador por primera vez (opcional)
+            // const browserLang = navigator.language.split('-')[0];
+            // if (translations[browserLang]) {
+            //     setLanguage(browserLang);
+            // } else {
+            //     setLanguage(currentLang);
+            // }
+            setLanguage(currentLang); // Usamos el idioma por defecto (ES) para simplicidad.
+        });
+
+        // 4.1. SISTEMA DE HZ
+        let lastTime = performance.now();
+        let frames = 0;
+        const hzElement = document.getElementById('hz-counter');
+
+        function updateHz() {
+            const now = performance.now();
+            frames++;
+            if (now - lastTime >= 1000) {
+                hzElement.innerText = frames + " Hz";
+                frames = 0;
+                lastTime = now;
+            }
+            requestAnimationFrame(updateHz);
+        }
+        requestAnimationFrame(updateHz);
+
+        // 4.2. SISTEMA DE TEST DE PANTALLA
+        const overlay = document.getElementById('test-overlay');
+        const body = document.body;
+
+        window.startTest = function(color) { // Hacemos la función global
+            overlay.style.backgroundColor = color;
+            overlay.style.display = 'block';
+            body.classList.add('no-scroll');
+
+            if (document.documentElement.requestFullscreen) {
+                document.documentElement.requestFullscreen().catch(err => {
+                    console.log("El usuario canceló o bloqueó fullscreen");
+                });
+            }
+        }
+
+        function stopTest() {
+            overlay.style.display = 'none';
+            body.classList.remove('no-scroll');
+
+            if (document.fullscreenElement) {
+                document.exitFullscreen().catch(err => console.log(err));
+            }
+        }
+
+        overlay.addEventListener('click', stopTest);
+        
+        document.addEventListener('keydown', (e) => {
+            if (e.key === "Escape") stopTest();
+        });
+        
+        document.addEventListener('fullscreenchange', () => {
+            if (!document.fullscreenElement) {
+                overlay.style.display = 'none';
+                body.classList.remove('no-scroll');
+            }
+        });
+    </script>
+</body>
+</html>
