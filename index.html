@@ -1,14 +1,9 @@
 <!DOCTYPE html>
 <html lang="es">
 <head>
-
-    
-<script async src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-7772491444345825"
-     crossorigin="anonymous"></script>
-
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title data-i18n="meta-title">Monitor Test Pro - Herramienta de Calidad de Pantalla</title>
+    <title data-i18n="meta-title">Dead Pixel Detector - Dead pixel test tool.</title>
     <meta name="description" data-i18n="meta-description" content="Verifica la calidad de tu monitor, encuentra píxeles muertos y mide tus Hz reales.">
     <style>
         /* --- CONFIGURACIÓN BASE --- */
@@ -106,6 +101,39 @@
         .language-selector button.active {
             border-color: var(--accent);
             background: #0088aa;
+        }
+
+         /* --- FOOTER (NUEVO) --- */
+        .site-footer {
+            width: 100%;
+            background-color: #0d0d0d; /* Un poco más oscuro */
+            padding: 30px 20px;
+            border-top: 1px solid #333;
+            text-align: center;
+            margin-top: 50px; 
+        }
+
+        .footer-content {
+            max-width: 1000px;
+            margin: 0 auto;
+        }
+
+        .footer-links a {
+            color: var(--text-muted);
+            text-decoration: none;
+            margin: 0 15px;
+            font-size: 0.9rem;
+            transition: color 0.2s;
+        }
+
+        .footer-links a:hover {
+            color: var(--accent);
+        }
+
+        .footer-text {
+            margin-top: 15px;
+            font-size: 0.8rem;
+            color: #666;
         }
 
         /* --- CAJA DE HZ --- */
@@ -249,25 +277,6 @@
         }
 
     </style>
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-    
 </head>
 <body>
 
@@ -292,8 +301,8 @@
         <main class="content-area">
             
             <header>
-                <h1 data-i18n="h1-title">Monitor Test Pro</h1>
-                <p class="subtitle" data-i18n="h1-subtitle">Suite de diagnóstico de pantalla y Hz</p>
+                <h1 data-i18n="h1-title">Dead Pixel Detector</h1>
+                <p class="subtitle" data-i18n="h1-subtitle">Suite de diagnóstico de pixel muerto</p>
             </header>
 
             <!-- <div class="hz-card">
@@ -356,7 +365,6 @@
             </article>
 
         </main>
-
         <aside class="ad-sidebar right">
             <div class="ad-placeholder">
                 <span data-i18n="ad-slot">Espacio para Anuncio (Google Adsense)</span>
@@ -369,14 +377,29 @@
         <div id="exit-hint" data-i18n="exit-hint">Presiona ESC o haz Clic para salir</div>
     </div>
 
+
+    <footer class="site-footer">
+        <div class="footer-content">
+            <div class="footer-links">
+                <a href="privacy.html" data-i18n="footer-privacy">Privacy Policy</a>
+                <a href="terms.html" data-i18n="footer-terms">Terms of use</a>
+                <a href="disclaimer.html" data-i18n="footer-disclaimer">Disclaimer</a>
+                <a href="mailto:deadpixeldetector@proton.me" data-i18n="footer-contact">Contact</a>
+            </div>
+            <p class="footer-text" data-i18n="footer-copyright">
+                © 2025 Monitor Test Pro. All rights reserved.
+            </p>
+        </div>
+    </footer>
+
     <script>
         // --- 1. DICCIONARIO DE TRADUCCIONES ---
         const translations = {
             'es': {
-                'meta-title': 'Monitor Test Pro - Herramienta de Calidad de Pantalla',
-                'meta-description': 'Verifica la calidad de tu monitor, encuentra píxeles muertos y mide tus Hz reales.',
-                'h1-title': 'Monitor Test Pro',
-                'h1-subtitle': 'Suite de diagnóstico de pantalla y Hz',
+                'meta-title': 'Dead Pixel Detector - Herramienta de diagnostico de pixel muerto',
+                'meta-description': 'Verifica la calidad de tu monitor, encuentre píxeles muertos.',
+                'h1-title': 'Dead Pixel Detector',
+                'h1-subtitle': 'Suite de diagnóstico de pixeles muertos',
                 'hz-label': 'Tasa de Refresco Real',
                 'guide-title': '📊 Guía Rápida de Uso',
                 'step1-title': '1. Limpia tu pantalla',
@@ -403,10 +426,10 @@
                 'ad-slot': 'Espacio para Anuncio (Google Adsense)'
             },
             'en': {
-                'meta-title': 'Monitor Test Pro - Screen Quality Tool',
+                'meta-title': 'Dead Pixel Detector - Screen Quality Tool',
                 'meta-description': 'Check your monitor quality, find dead pixels, and measure your real Hz.',
-                'h1-title': 'Monitor Test Pro',
-                'h1-subtitle': 'Screen and Hz Diagnostic Suite',
+                'h1-title': 'Dead Pixel Detector',
+                'h1-subtitle': 'Dead pixel test tool.',
                 'hz-label': 'Real Refresh Rate',
                 'guide-title': '📊 Quick Use Guide',
                 'step1-title': '1. Clean your screen',
@@ -536,5 +559,10 @@
             }
         });
     </script>
+
+
+
+
+
 </body>
 </html>
