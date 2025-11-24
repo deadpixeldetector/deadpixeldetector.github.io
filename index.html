@@ -3,570 +3,426 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title data-i18n="meta-title">Dead Pixel Detector - Dead pixel test tool.</title>
-    <meta name="description" data-i18n="meta-description" content="Verifica la calidad de tu monitor, encuentra píxeles muertos y mide tus Hz reales.">
+    <title id="page-title">Detector de Píxeles Muertos</title>
+    <!-- Carga de Tailwind CSS -->
+    <script src="https://cdn.tailwindcss.com"></script>
     <style>
-        /* --- CONFIGURACIÓN BASE --- */
-        :root {
-            --bg-color: #121212;
-            --panel-bg: #1e1e1e;
-            --text-main: #ffffff;
-            --text-muted: #b0b0b0;
-            --accent: #00e5ff;
-            --sidebar-width: 200px;
-        }
-
-        * { margin: 0; padding: 0; box-sizing: border-box; font-family: 'Segoe UI', Roboto, Helvetica, Arial, sans-serif; }
-
+        /* Estilos personalizados para el minimalismo, el modo oscuro y la estructura de la página */
         body {
-            background-color: var(--bg-color);
-            color: var(--text-main);
-            overflow-x: hidden;
+            font-family: 'Inter', sans-serif;
+            background-color: #0d1117; /* Fondo oscuro, futurista */
+            color: #ffffff;
+            transition: background-color 0.3s, color 0.3s;
         }
 
-        body.no-scroll {
-            overflow: hidden;
+        /* Clase crucial para ocultar el scrollbar cuando se entra en FullScreen */
+        .no-scroll {
+            overflow: hidden !important;
         }
 
-        /* --- LAYOUT PRINCIPAL Y SIDEBARS (SIN CAMBIOS) --- */
-        .main-layout {
-            display: flex;
-            min-height: 100vh;
-            position: relative; /* Para posicionar el selector de idioma */
-        }
-
-        .ad-sidebar {
-            width: var(--sidebar-width);
-            background-color: #181818;
-            border-left: 1px solid #333;
-            border-right: 1px solid #333;
-            display: flex;
-            flex-direction: column;
-            align-items: center;
-            padding-top: 100px;
-            flex-shrink: 0;
-        }
-
-        .ad-placeholder {
-            width: 160px;
-            height: 600px;
-            background-color: #252525;
-            border: 2px dashed #444;
-            color: #666;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            text-align: center;
-            font-size: 0.8rem;
-        }
-
-        .content-area {
-            flex-grow: 1;
-            padding: 40px;
-            display: flex;
-            flex-direction: column;
-            align-items: center;
-            max-width: 100%;
-        }
-
-        header { text-align: center; margin-bottom: 40px; }
-        h1 { font-size: 2.2rem; color: var(--text-main); margin-bottom: 10px; }
-        .subtitle { color: var(--accent); font-size: 1.1rem; font-weight: 500; }
-        
-        /* --- SELECTOR DE IDIOMA (NUEVO) --- */
-        .language-selector {
-            position: absolute;
-            top: 20px;
-            right: 20px;
-            z-index: 1000;
-        }
-
-        .language-selector button {
-            background: var(--panel-bg);
-            border: 1px solid #444;
-            color: var(--text-main);
-            padding: 8px 12px;
-            margin-left: 5px;
-            cursor: pointer;
-            border-radius: 6px;
-            font-weight: bold;
-            transition: background 0.2s, border-color 0.2s;
-        }
-
-        .language-selector button:hover {
-            background: #2a2a2a;
-            border-color: var(--accent);
-        }
-
-        .language-selector button.active {
-            border-color: var(--accent);
-            background: #0088aa;
-        }
-
-         /* --- FOOTER (NUEVO) --- */
-        .site-footer {
-            width: 100%;
-            background-color: #0d0d0d; /* Un poco más oscuro */
-            padding: 30px 20px;
-            border-top: 1px solid #333;
-            text-align: center;
-            margin-top: 50px; 
-        }
-
-        .footer-content {
-            max-width: 1000px;
-            margin: 0 auto;
-        }
-
-        .footer-links a {
-            color: var(--text-muted);
-            text-decoration: none;
-            margin: 0 15px;
-            font-size: 0.9rem;
-            transition: color 0.2s;
-        }
-
-        .footer-links a:hover {
-            color: var(--accent);
-        }
-
-        .footer-text {
-            margin-top: 15px;
-            font-size: 0.8rem;
-            color: #666;
-        }
-
-        /* --- CAJA DE HZ --- */
-        .hz-card {
-            background: linear-gradient(145deg, #2a2a2a, #1e1e1e);
-            padding: 25px 50px;
-            border-radius: 15px;
-            box-shadow: 0 10px 20px rgba(0,0,0,0.4);
-            text-align: center;
-            margin-bottom: 40px;
-            border: 1px solid #333;
-            position: relative;
-            overflow: hidden;
-        }
-        
-        .hz-card::after {
-            content: '';
-            position: absolute;
-            bottom: 0;
-            left: 0;
-            width: 100%;
-            height: 4px;
-            background: var(--accent);
-            animation: scan 2s linear infinite;
-        }
-        @keyframes scan { 0% {transform: translateX(-100%);} 100% {transform: translateX(100%);} }
-
-        .hz-value { font-size: 4rem; font-weight: 800; color: #fff; line-height: 1; }
-        .hz-label { font-size: 0.9rem; color: var(--text-muted); letter-spacing: 2px; text-transform: uppercase; margin-top: 5px; }
-
-        /* --- SECCIÓN DE INSTRUCCIONES --- */
-        .instructions {
-            background-color: rgba(255,255,255,0.05);
-            border-radius: 10px;
-            padding: 20px;
-            max-width: 700px;
-            width: 100%;
-            margin-bottom: 30px;
-            border-left: 4px solid var(--accent);
-        }
-        
-        .instructions h3 { margin-bottom: 15px; font-size: 1.2rem; display: flex; align-items: center; gap: 10px; }
-        
-        .steps-grid {
-            display: grid;
-            grid-template-columns: 1fr 1fr 1fr;
-            gap: 20px;
-        }
-
-        .step { font-size: 0.9rem; color: var(--text-muted); line-height: 1.4; }
-        .step strong { color: white; display: block; margin-bottom: 5px; }
-
-        /* --- BOTONES DE PRUEBA --- */
-        .test-grid {
-            display: grid;
-            grid-template-columns: repeat(auto-fit, minmax(100px, 1fr));
-            gap: 20px;
-            width: 100%;
-            max-width: 800px;
-            margin-bottom: 50px;
-        }
-
-        .test-card {
-            background: var(--panel-bg);
-            padding: 15px;
-            border-radius: 10px;
-            text-align: center;
-            cursor: pointer;
-            transition: transform 0.2s, background 0.2s;
-            border: 1px solid #333;
-        }
-
-        .test-card:hover { transform: translateY(-5px); background: #2c2c2c; border-color: var(--accent); }
-
+        /* Estilo para los círculos de color */
         .color-circle {
-            width: 40px;
-            height: 40px;
+            width: 48px;
+            height: 48px;
             border-radius: 50%;
-            margin: 0 auto 10px;
-            border: 2px solid #444;
+            cursor: pointer;
+            border: 3px solid rgba(255, 255, 255, 0.3);
+            transition: transform 0.2s, box-shadow 0.2s;
         }
 
-        .test-name { font-size: 0.9rem; font-weight: bold; margin-bottom: 4px; }
-        .test-desc { font-size: 0.75rem; color: var(--text-muted); }
+        .color-circle:hover {
+            transform: scale(1.1);
+            box-shadow: 0 0 15px rgba(59, 130, 246, 0.5);
+        }
 
-        /* --- SEO TEXT --- */
-        .seo-article { max-width: 800px; line-height: 1.7; color: #ccc; font-size: 0.95rem; }
-        .seo-article h2 { color: white; margin-top: 30px; margin-bottom: 10px; font-size: 1.5rem; }
-        
-        /* --- PANTALLA COMPLETA (Overlay) --- */
-        #test-overlay {
+        /* Estilo para el botón principal futurista */
+        .main-button {
+            background: linear-gradient(90deg, #1d4ed8, #3b82f6, #1d4ed8);
+            background-size: 200% 100%;
+            transition: all 0.5s ease-in-out;
+        }
+        .main-button:hover {
+            background-position: -100% 0;
+            box-shadow: 0 10px 30px rgba(59, 130, 246, 0.5);
+            transform: translateY(-2px);
+        }
+
+        /* Estilo para el contenedor de la prueba en pantalla completa */
+        #fullscreen-test-overlay {
             position: fixed;
             top: 0;
             left: 0;
             width: 100vw;
             height: 100vh;
             z-index: 9999;
-            display: none;
-            cursor: none;
-        }
-
-        #exit-hint {
-            position: absolute;
-            top: 20px;
-            left: 50%;
-            transform: translateX(-50%);
-            background: rgba(0,0,0,0.6);
-            color: white;
-            padding: 10px 20px;
-            border-radius: 20px;
-            font-size: 0.9rem;
-            pointer-events: none;
+            visibility: hidden; /* Inicialmente invisible */
             opacity: 0;
-            animation: hintFade 4s forwards;
+            transition: opacity 0.1s ease;
+            cursor: pointer;
         }
 
-        @keyframes hintFade {
-            0% { opacity: 0; top: 0px; }
-            20% { opacity: 1; top: 20px; }
-            80% { opacity: 1; }
-            100% { opacity: 0; }
+        #fullscreen-test-overlay.active {
+            visibility: visible;
+            opacity: 1;
         }
-
-        /* --- RESPONSIVE (MOVIL) --- */
-        @media (max-width: 900px) {
-            .main-layout { flex-direction: column; }
-            .ad-sidebar { 
-                width: 100%; 
-                height: auto; 
-                padding: 20px; 
-                flex-direction: row; 
-                justify-content: center; 
-                border: none;
-                border-bottom: 1px solid #333;
+        
+        /* Estilos para las barras de anuncios laterales (ocultas en móviles) */
+        @media (max-width: 1024px) {
+            .ad-sidebar {
+                display: none;
             }
-            .ad-sidebar.left { order: -1; }
-            .ad-sidebar.right { order: 2; }
-            .ad-placeholder { width: 300px; height: 100px; }
-            .steps-grid { grid-template-columns: 1fr; }
-            .language-selector { top: 10px; right: 10px; }
         }
-
     </style>
 </head>
-<body>
+<body class="min-h-screen flex flex-col">
 
-    <div class="language-selector">
-        <button id="lang-es" data-lang="es" class="active">Español</button>
-        <button id="lang-en" data-lang="en">English</button>
+    <!-- Capa de Superposición para la Prueba en Pantalla Completa -->
+    <!-- IMPORTANTE: Se quita la clase "active" para asegurar que la solicitud de Fullscreen se haga con el primer clic del usuario. -->
+    <div id="fullscreen-test-overlay" style="background-color: transparent;">
+        <!-- El color se cambiará directamente con JS -->
     </div>
-
-    <div class="main-layout">
-
-        <aside class="ad-sidebar left">
-            <div class="ad-placeholder">
-                <span data-i18n="ad-slot"><script async src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-7772491444345825"
-             crossorigin="anonymous"></script></span>
-
-
-
-
+    
+    <!-- Contenedor Principal de la Aplicación -->
+    <div id="app-container" class="flex flex-col flex-grow">
+        
+        <!-- Header con Título y Selector de Idiomas -->
+        <header class="p-4 md:p-6 border-b border-gray-800 flex justify-between items-center sticky top-0 bg-opacity-95 backdrop-blur-sm z-20">
+            <h1 class="text-3xl font-bold text-blue-400 tracking-wider" id="header-title">Dead Pixel Detector</h1>
+            <div id="language-selector" class="flex space-x-2">
+                <!-- Banderas de idiomas se insertarán aquí -->
             </div>
-        </aside>
+        </header>
 
-        <main class="content-area">
+        <!-- Diseño de Contenido Principal con Barras Laterales de Anuncios -->
+        <div class="flex flex-grow w-full">
             
-            <header>
-                <h1 data-i18n="h1-title">Dead Pixel Detector</h1>
-                <p class="subtitle" data-i18n="h1-subtitle">Suite de diagnóstico de pixel muerto</p>
-            </header>
+            <!-- Barra Lateral Izquierda para Anuncios (Desktop/Tablet) -->
+            <!-- Ancho: 15% (40% más delgado que 25%) | Posicionamiento: sticky top-4 -->
+            <aside class="ad-sidebar w-[15%] p-4 border-r border-gray-800 lg:block hidden sticky top-4 h-full">
+                <!-- Altura mínima de 72vh (10% más corto que 80vh) -->
+                <div class="bg-gray-900 border border-gray-700 p-2 rounded-lg shadow-inner text-sm text-gray-500 text-center min-h-[72vh] flex items-center justify-center">
+                    [Anuncio Lateral Izquierdo - 15% Ancho]
+                </div>
+            </aside>
 
-            <!-- <div class="hz-card">
-                <div class="hz-value" id="hz-counter">...</div>
-                <div class="hz-label" data-i18n="hz-label">Tasa de Refresco Real</div>
-            </div> -->
+            <!-- Contenido Central de la Página -->
+            <!-- Ancho: El restante, que es 100% - 15% - 15% = 70% -->
+            <main class="flex-grow container w-[70%] mx-auto p-4 md:p-8">
 
-            <section class="instructions">
-                <h3 data-i18n="guide-title">📊 Guía Rápida de Uso</h3>
-                <div class="steps-grid">
-                    <div class="step">
-                        <strong data-i18n="step1-title">1. Limpia tu pantalla</strong>
-                        <span data-i18n="step1-desc">Asegurese de que su pantalla este limpia para no confundir el polvo con pixeles muertos.</span>
+                <!-- Sección Central de la Prueba -->
+                <section class="text-center py-8 md:py-16 flex flex-col items-center">
+                    <h2 class="text-2xl md:text-4xl font-light mb-8 text-gray-300" id="test-intro">
+                        Verifica tu pantalla con nuestra prueba rápida y eficiente.
+                    </h2>
+
+                    <!-- Botón Principal "Iniciar Prueba" -->
+                    <button id="start-test-button" class="main-button text-white font-bold py-4 px-10 text-lg md:text-xl rounded-xl shadow-lg hover:shadow-xl transition duration-300 ease-in-out">
+                        Iniciar Prueba
+                    </button>
+
+                    <div class="mt-12">
+                        <h3 class="text-xl font-semibold mb-6 text-blue-300" id="quick-test-title">Prueba Rápida por Color</h3>
+                        <!-- Círculos de Colores para Prueba Rápida -->
+                        <div id="color-circles-container" class="flex justify-center space-x-4 md:space-x-6">
+                            <!-- Los círculos se añadirán dinámicamente por JS -->
+                        </div>
                     </div>
-                    <div class="step">
-                        <strong data-i18n="step2-title">2. Elige un Test</strong>
-                        <span data-i18n="step2-desc">Usa los botones de abajo. La pantalla se pondrá de un solo color.</span>
+                </section>
+
+                <!-- Sección de Información (SEO y Contenido) -->
+                <section class="mt-16 border-t border-gray-800 pt-10">
+                    <h2 class="text-3xl font-bold mb-6 text-blue-400" id="info-title">¿Qué es un Píxel Muerto?</h2>
+
+                    <!-- Definición -->
+                    <div class="mb-8">
+                        <h3 class="text-xl font-semibold mb-3 text-gray-300" id="def-title">Definición</h3>
+                        <p class="text-gray-400 leading-relaxed" id="def-content">Un píxel muerto es un punto diminuto en una pantalla LCD o LED que no se ilumina correctamente. Un píxel consta de tres subpíxeles (rojo, verde y azul). Si un píxel está completamente apagado (negro o invisible), es un píxel muerto. Si está permanentemente encendido en un solo color (por ejemplo, verde brillante) se conoce como píxel atascado (stuck pixel).</p>
                     </div>
-                    <div class="step">
-                        <strong data-i18n="step3-title">3. Inspecciona</strong>
-                        <span data-i18n="step3-desc">Busca puntos negros (muertos) o de otro color (atascados). Pulsa ESC para salir.</span>
+
+                    <!-- Causas -->
+                    <div class="mb-8">
+                        <h3 class="text-xl font-semibold mb-3 text-gray-300" id="causes-title">Causas</h3>
+                        <ul class="list-disc list-inside space-y-2 text-gray-400" id="causes-list">
+                            <li>Fallo de Transistor: Cada subpíxel es controlado por un transistor. Si este transistor falla, el subpíxel no puede recibir la energía necesaria, quedando apagado.</li>
+                            <li>Problemas de Fabricación: Defectos microscópicos durante el proceso de producción del panel.</li>
+                            <li>Daño Físico: Presión excesiva en la pantalla puede dañar los cristales líquidos o la circuitería subyacente.</li>
+                            <li>Calor Excesivo: La exposición prolongada a altas temperaturas puede afectar la integridad de los componentes del panel.</li>
+                        </ul>
                     </div>
+
+                    <!-- Soluciones -->
+                    <div class="mb-8">
+                        <h3 class="text-xl font-semibold mb-3 text-gray-300" id="solutions-title">Soluciones</h3>
+                        <p class="text-gray-400 leading-relaxed mb-3" id="solutions-intro">Si bien los píxeles muertos permanentes a menudo requieren el reemplazo del panel, los píxeles atascados a veces pueden repararse:</p>
+                        <ul class="list-disc list-inside space-y-2 text-gray-400" id="solutions-list">
+                            <li>Método de Presión Suave: Aplicar una presión muy suave y controlada (con un paño) sobre el píxel atascado para realinear el cristal líquido.</li>
+                            <li>Software de Ciclo Rápido: Usar software que hace que el píxel cambie rápidamente entre colores, lo que puede "desatascar" el transistor.</li>
+                            <li>Garantía: Si tu pantalla es nueva, contacta al fabricante. Muchos ofrecen reemplazo si el número de píxeles muertos excede un umbral (la clase de calidad de pantalla).</li>
+                        </ul>
+                    </div>
+                </section>
+            </main>
+
+            <!-- Barra Lateral Derecha para Anuncios (Desktop/Tablet) -->
+            <!-- Ancho: 15% (40% más delgado que 25%) | Posicionamiento: sticky top-4 -->
+            <aside class="ad-sidebar w-[15%] p-4 border-l border-gray-800 lg:block hidden sticky top-4 h-full">
+                 <!-- Altura mínima de 72vh (10% más corto que 80vh) -->
+                <div class="bg-gray-900 border border-gray-700 p-2 rounded-lg shadow-inner text-sm text-gray-500 text-center min-h-[72vh] flex items-center justify-center">
+                    [Anuncio Lateral Derecho - 15% Ancho]
                 </div>
-            </section>
+            </aside>
 
-            <div class="test-grid">
-                <div class="test-card" onclick="startTest('#ffffff')">
-                    <div class="color-circle" style="background: #ffffff;"></div>
-                    <div class="test-name" data-i18n="test-white-title">Blanco Puro</div>
-                    <div class="test-desc" data-i18n="test-white-desc">Para ver brillo y uniformidad</div>
-                </div>
-                <div class="test-card" onclick="startTest('#000000')">
-                    <div class="color-circle" style="background: #000000; border-color: #555;"></div>
-                    <div class="test-name" data-i18n="test-black-title">Negro Total</div>
-                    <div class="test-desc" data-i18n="test-black-desc">Para fugas de luz y píxeles atascados</div>
-                </div>
-                <div class="test-card" onclick="startTest('#ff0000')">
-                    <div class="color-circle" style="background: #ff0000;"></div>
-                    <div class="test-name" data-i18n="test-red-title">Rojo</div>
-                    <div class="test-desc" data-i18n="test-red-desc">Subpíxel Rojo</div>
-                </div>
-                <div class="test-card" onclick="startTest('#00ff00')">
-                    <div class="color-circle" style="background: #00ff00;"></div>
-                    <div class="test-name" data-i18n="test-green-title">Verde</div>
-                    <div class="test-desc" data-i18n="test-green-desc">Subpíxel Verde</div>
-                </div>
-                <div class="test-card" onclick="startTest('#0000ff')">
-                    <div class="color-circle" style="background: #0000ff;"></div>
-                    <div class="test-name" data-i18n="test-blue-title">Azul</div>
-                    <div class="test-desc" data-i18n="test-blue-desc">Subpíxel Azul</div>
-                </div>
-            </div>
-
-            <!-- <article class="seo-article">
-                <h2 data-i18n="seo-h2-hz">¿Qué es la Tasa de Refresco (Hz)?</h2>
-                <p data-i18n="seo-p-hz">La tasa de refresco es la cantidad de veces que tu monitor actualiza la imagen por segundo. Un monitor estándar tiene 60Hz, mientras que los monitores gaming suelen tener 144Hz o más, lo que ofrece movimientos más fluidos.</p>
-                 -->
-                <h2 data-i18n="seo-h2-stuck">¿How to repair a stuck pixel?</h2>
-                <p data-i18n="seo-p-stuck">A common problem that can lower the quality of any screen, whether it's a laptop display or a 4K gaming monitor, is a defective pixel. It's critical to differentiate between stuck pixels and dead pixels. A dead pixel is a permanent flaw that shows up as a black area on the screen because the transistor is broken and cannot be fixed. Replacing the screen is the only option in this situation.
-A stuck pixel, on the other hand, stays fixed on a primary color (red, green, or blue), but software can usually fix it. This occurs as a result of the transistor being "frozen" and malfunctioning. **Dead Pixel Detector** is useful in this situation: an easy-to-use and efficient online tool that
-           
-           
-           
-            </article>
-
-        </main>
-        <aside class="ad-sidebar right">
-            <div class="ad-placeholder">
-                <span data-i18n="ad-slot">Espacio para Anuncio (Google Adsense)</span>
-            </div>
-        </aside>
-
-    </div>
-
-    <div id="test-overlay">
-        <div id="exit-hint" data-i18n="exit-hint">Presiona ESC o haz Clic para salir</div>
-    </div>
-
-
-    <footer class="site-footer">
-        <div class="footer-content">
-            <div class="footer-links">
-                <a href="privacy.html" data-i18n="footer-privacy">Privacy Policy</a>
-                <a href="terms.html" data-i18n="footer-terms">Terms of use</a>
-                <a href="disclaimer.html" data-i18n="footer-disclaimer">Disclaimer</a>
-                <a href="mailto:deadpixeldetector@proton.me" data-i18n="footer-contact">Contact</a>
-            </div>
-            <p class="footer-text" data-i18n="footer-copyright">
-                © 2025 Monitor Test Pro. All rights reserved.
-            </p>
         </div>
-    </footer>
 
+        <!-- Footer -->
+        <footer class="mt-8 p-6 border-t border-gray-800 text-center text-sm text-gray-500">
+            <nav class="flex flex-wrap justify-center space-x-4 md:space-x-6">
+                <a href="#" class="hover:text-blue-400 transition" id="footer-copyright">Copyright © 2024 Detector de Píxeles Muertos</a>
+                <a href="#" class="hover:text-blue-400 transition" id="footer-privacy">Política de Privacidad</a>
+                <a href="#" class="hover:text-blue-400 transition" id="footer-terms">Términos de Uso</a>
+                <a href="#" class="hover:text-blue-400 transition" id="footer-disclaimer">Descargo de Responsabilidad</a>
+                <a href="#" class="hover:text-blue-400 transition" id="footer-contact">Contacto</a>
+            </nav>
+        </footer>
+    </div>
+
+
+    <!-- Script JavaScript -->
     <script>
-        // --- 1. DICCIONARIO DE TRADUCCIONES ---
-        const translations = {
-            'es': {
-                'meta-title': 'Dead Pixel Detector - Herramienta de diagnostico de pixel muerto',
-                'meta-description': 'Verifica la calidad de tu monitor, encuentre píxeles muertos.',
-                'h1-title': 'Dead Pixel Detector',
-                'h1-subtitle': 'Suite de diagnóstico de pixeles muertos',
-                'hz-label': 'Tasa de Refresco Real',
-                'guide-title': '📊 Guía Rápida de Uso',
-                'step1-title': '1. Limpia tu pantalla',
-                'step1-desc': 'Asegúrese de que su pantalla está limpia para no confundir el polvo con píxeles muertos.',
-                'step2-title': '2. Elige un Test',
-                'step2-desc': 'Usa los botones de abajo. La pantalla se pondrá de un solo color.',
-                'step3-title': '3. Inspecciona',
-                'step3-desc': 'Busca puntos negros (muertos) o de otro color (atascados). Pulsa ESC para salir.',
-                'test-white-title': 'Blanco Puro',
-                'test-white-desc': 'Para ver brillo y uniformidad',
-                'test-black-title': 'Negro Total',
-                'test-black-desc': 'Para fugas de luz y píxeles atascados',
-                'test-red-title': 'Rojo',
-                'test-red-desc': 'Subpíxel Rojo',
-                'test-green-title': 'Verde',
-                'test-green-desc': 'Subpíxel Verde',
-                'test-blue-title': 'Azul',
-                'test-blue-desc': 'Subpíxel Azul',
-                'seo-h2-hz': '¿Qué es la Tasa de Refresco (Hz)?',
-                'seo-h2-stuck': '¿Cómo arreglar un píxel atascado?',
+        document.addEventListener('DOMContentLoaded', () => {
+            // --- Configuración y Traducciones ---
+            const COLORS = ['#FFFFFF', '#0000FF', '#00FF00', '#FF0000', '#000000']; // Blanco, Azul, Verde, Rojo, Negro
+            const FLAGS = {
+                'es': '🇪🇸', 'en': '🇬🇧', 'pt': '🇧🇷', 'fr': '🇫🇷', 'it': '🇮🇹', 'de': '🇩🇪', 'ru': '🇷🇺', 'uk': '🇺🇦'
+            };
 
-'seo-p-stuck': 'Un problema común que puede reducir la calidad de cualquier pantalla, ya sea la de una laptop o un monitor 4K para juegos, es un píxel defectuoso. Es crucial diferenciar entre píxeles atascados y píxeles muertos. Un píxel muerto es una falla permanente que aparece como un área negra en la pantalla porque el transistor está dañado y no se puede reparar. En este caso, la única opción es reemplazar la pantalla. Por otro lado, un píxel atascado se queda fijo en un color primario (rojo, verde o azul), pero generalmente puede solucionarse mediante software. Esto sucede porque el transistor está "congelado" y no funciona correctamente. Aquí es donde entra Dead Pixel Detector, una herramienta web fácil de usar y eficiente que te permite diagnosticar toda la pantalla con un solo clic. Esta herramienta garantiza tu privacidad, elimina cualquier complejidad y te permite identificar rápidamente cualquier píxel defectuoso sin necesidad de descargar nada.',
-
-
-                'exit-hint': 'Presiona ESC o haz Clic para salir',
-                'ad-slot': 'Espacio para Anuncio (Google Adsense)'
-            },
-            'en': {
-                'meta-title': 'Dead Pixel Detector - Screen Quality Tool',
-                'meta-description': 'Check your monitor quality, find dead pixels, and measure your real Hz.',
-                'h1-title': 'Dead Pixel Detector',
-                'h1-subtitle': 'Dead pixel test tool.',
-                'hz-label': 'Real Refresh Rate',
-                'guide-title': '📊 Quick Use Guide',
-                'step1-title': '1. Clean your screen',
-                'step1-desc': 'Make sure your screen is clean so you do not mistake dust for dead pixels.',
-                'step2-title': '2. Choose a Test',
-                'step2-desc': 'Use the buttons below. The screen will turn into a solid color.',
-                'step3-title': '3. Inspect',
-                'step3-desc': 'Look for black dots (dead) or other colors (stuck). Press ESC to exit.',
-                'test-white-title': 'Pure White',
-                'test-white-desc': 'To check brightness and uniformity',
-                'test-black-title': 'Total Black',
-                'test-black-desc': 'To check for light bleeding and stuck pixels',
-                'test-red-title': 'Red',
-                'test-red-desc': 'Red Subpixel',
-                'test-green-title': 'Green',
-                'test-green-desc': 'Green Subpixel',
-                'test-blue-title': 'Blue',
-                'test-blue-desc': 'Blue Subpixel',
-                'seo-h2-stuck': 'How to fix a stuck pixel?',
-                'seo-p-stuck': 'A common problem that can lower the quality of any screen, whether it is a laptop display or a 4K gaming monitor, is a defective pixel. It is critical to differentiate between stuck pixels and dead pixels. A dead pixel is a permanent flaw that shows up as a black area on the screen because the transistor is broken and cannot be fixed. Replacing the screen is the only option in this situation. A stuck pixel, on the other hand, stays fixed on a primary color (red, green, or blue), but software can usually fix it. This occurs as a result of the transistor being "frozen" and malfunctioning. **Dead Pixel Detector** is useful in this situation: an easy-to-use and efficient online tool that. A stuck pixel, on the other hand, stays fixed on a primary color (red, green, or blue), but software can usually fix it.  This occurs as a result of the transistor being "frozen" and malfunctioning.  This is where Dead Pixel Detector, an easy-to-use web tool that allows you to diagnose the entire screen with a single click, comes in.  This tool guarantees your privacy while eliminating any complexity and enabling you to swiftly identify any faulty pixels without requiring any downloads.',
-                'exit-hint': 'Press ESC or Click to exit',
-                'ad-slot': 'Ad Slot (Google Adsense)'
-            }
-        };
-
-        let currentLang = 'es'; // Idioma por defecto
-
-        // --- 2. FUNCIÓN DE TRADUCCIÓN ---
-        function setLanguage(lang) {
-            currentLang = lang;
-            document.documentElement.lang = lang; // Cambia el atributo lang del HTML
-            
-            // Actualiza el título de la pestaña y la meta descripción
-            document.querySelector('title').textContent = translations[lang]['meta-title'];
-            document.querySelector('meta[name="description"]').content = translations[lang]['meta-description'];
-
-            // Recorre todos los elementos que necesitan traducción
-            document.querySelectorAll('[data-i18n]').forEach(element => {
-                const key = element.getAttribute('data-i18n');
-                if (translations[lang][key]) {
-                    // Para elementos que pueden tener HTML (como strong) usamos innerHTML
-                    element.innerHTML = translations[lang][key]; 
+            const translations = {
+                'es': {
+                    title: 'Detector de Píxeles Muertos', intro: 'Verifica tu pantalla con nuestra prueba rápida y eficiente.', startButton: 'Iniciar Prueba', quickTestTitle: 'Prueba Rápida por Color', infoTitle: '¿Qué es un Píxel Muerto?', defTitle: 'Definición', defContent: 'Un píxel muerto es un punto diminuto en una pantalla LCD o LED que no se ilumina correctamente. Un píxel consta de tres subpíxeles (rojo, verde y azul). Si un píxel está completamente apagado (negro o invisible), es un píxel muerto. Si está permanentemente encendido en un solo color (por ejemplo, verde brillante) se conoce como píxel atascado (stuck pixel).', causesTitle: 'Causas', causesList: [ 'Fallo de Transistor: Cada subpíxel es controlado por un transistor. Si este transistor falla, el subpíxel no puede recibir la energía necesaria, quedando apagado.', 'Problemas de Fabricación: Defectos microscópicos durante el proceso de producción del panel.', 'Daño Físico: Presión excesiva en la pantalla puede dañar los cristales líquidos o la circuitería subyacente.', 'Calor Excesivo: La exposición prolongada a altas temperaturas puede afectar la integridad de los componentes del panel.', ], solutionsTitle: 'Soluciones', solutionsIntro: 'Si bien los píxeles muertos permanentes a menudo requieren el reemplazo del panel, los píxeles atascados a veces pueden repararse:', solutionsList: [ 'Método de Presión Suave: Aplicar una presión muy suave y controlada (con un paño) sobre el píxel atascado para realinear el cristal líquido.', 'Software de Ciclo Rápido: Usar software que hace que el píxel cambie rápidamente entre colores, lo que puede "desatascar" el transistor.', 'Garantía: Si tu pantalla es nueva, contacta al fabricante. Muchos ofrecen reemplazo si el número de píxeles muertos excede un umbral (la clase de calidad de pantalla).', ], copyright: 'Copyright © 2024 Detector de Píxeles Muertos', privacy: 'Política de Privacidad', terms: 'Términos de Uso', disclaimer: 'Descargo de Responsabilidad', contact: 'Contacto', colorNames: ['Blanco', 'Azul', 'Verde', 'Rojo', 'Negro']
+                },
+                'en': {
+                    title: 'Dead Pixel Detector', intro: 'Check your screen with our quick and efficient test.', startButton: 'Start Test', quickTestTitle: 'Quick Color Test', infoTitle: 'What is a Dead Pixel?', defTitle: 'Definition', defContent: 'A dead pixel is a tiny dot on an LCD or LED screen that does not light up correctly. A pixel consists of three sub-pixels (red, green, and blue). If a pixel is completely off (black or invisible), it is a dead pixel. If it is permanently stuck on a single color (e.g., bright green), it is known as a stuck pixel.', causesTitle: 'Causes', causesList: [ 'Transistor Failure: Each sub-pixel is controlled by a transistor. If this transistor fails, the sub-pixel cannot receive the necessary power, remaining off.', 'Manufacturing Issues: Microscopic defects during the panel production process.', 'Physical Damage: Excessive pressure on the screen can damage the liquid crystals or underlying circuitry.', 'Excessive Heat: Prolonged exposure to high temperatures can affect the integrity of the panel components.', ], solutionsTitle: 'Solutions', solutionsIntro: 'While permanently dead pixels often require panel replacement, stuck pixels can sometimes be fixed:', solutionsList: [ 'Gentle Pressure Method: Apply very light, controlled pressure (with a cloth) over the stuck pixel to realign the liquid crystal.', 'Rapid Cycling Software: Use software that rapidly cycles the pixel through colors, which can "unstick" the transistor.', 'Warranty: If your screen is new, contact the manufacturer. Many offer replacement if the number of dead pixels exceeds a threshold (the screen quality class).', ], copyright: 'Copyright © 2024 Dead Pixel Detector', privacy: 'Privacy Policy', terms: 'Terms of Use', disclaimer: 'Disclaimer', contact: 'Contact', colorNames: ['White', 'Blue', 'Green', 'Red', 'Black']
+                },
+                'pt': {
+                    title: 'Detector de Pixel Morto', intro: 'Verifique sua tela com nosso teste rápido e eficiente.', startButton: 'Iniciar Teste', quickTestTitle: 'Teste Rápido por Cor', infoTitle: 'O que é um Pixel Morto?', defTitle: 'Definição', defContent: 'Um pixel morto é um ponto minúsculo em uma tela LCD ou LED que não acende corretamente. Um pixel é composto por três subpixels (vermelho, verde e azul). Se um pixel estiver completamente desligado (preto ou invisível), é um pixel morto. Se estiver permanentemente ligado em uma única cor (por exemplo, verde brilhante), é conhecido como pixel preso (stuck pixel).', causesTitle: 'Causas', causesList: [ 'Falha do Transistor: Cada subpixel é controlado por um transistor. Se este transistor falhar, o subpixel não consegue receber a energia necessária, permanecendo desligado.', 'Problemas de Fabricação: Defeitos microscópicos durante o processo de produção do painel.', 'Dano Físico: Pressão excessiva na tela pode danificar os cristais líquidos ou a circuiteria subjacente.', 'Calor Excessivo: A exposição prolongada a altas temperaturas pode afetar a integridade dos componentes do painel.', ], solutionsTitle: 'Soluções', solutionsIntro: 'Embora pixels permanentemente mortos geralmente exijam a substituição do painel, pixels presos às vezes podem ser consertados:', solutionsList: [ 'Método de Pressão Suave: Aplique pressão muito leve e controlada (com um pano) sobre o pixel preso para realinhar o cristal líquido.', 'Software de Ciclo Rápido: Use software que faz o pixel alternar rapidamente entre cores, o que pode "soltar" o transistor.', 'Garantia: Se sua tela for nova, entre em contato com o fabricante. Muitos oferecem substituição se o número de pixels mortos exceder um limite (a classe de qualidade da tela).', ], copyright: 'Copyright © 2024 Detector de Pixel Morto', privacy: 'Política de Privacidade', terms: 'Termos de Uso', disclaimer: 'Isenção de Responsabilidade', contact: 'Contato', colorNames: ['Branco', 'Azul', 'Verde', 'Vermelho', 'Preto']
+                },
+                'fr': {
+                    title: 'Détecteur de Pixels Morts', intro: 'Vérifiez votre écran avec notre test rapide et efficace.', startButton: 'Démarrer le Test', quickTestTitle: 'Test Rapide par Couleur', infoTitle: 'Qu\'est-ce qu\'un Pixel Mort?', defTitle: 'Définition', defContent: 'Un pixel mort est un point minuscule sur un écran LCD ou LED qui ne s\'allume pas correctement. Un pixel est composé de trois sous-pixels (rouge, vert et bleu). Si un pixel est complètement éteint (noir ou invisible), c\'est un pixel mort. S\'il est bloqué en permanence sur une seule couleur (par exemple, vert vif), on parle de pixel bloqué (stuck pixel).', causesTitle: 'Causes', causesList: [ 'Défaillance du Transistor: Chaque sous-pixel est contrôlé par un transistor. Si celui-ci tombe en panne, le sous-pixel ne peut pas recevoir l\'énergie nécessaire, restant éteint.', 'Problèmes de Fabrication: Défauts microscopiques pendant le processus de production du panneau.', 'Dommages Physiques: Une pression excessive sur l\'écran peut endommager les cristaux liquides ou les circuits sous-jacents.', 'Chaleur Excessive: Une exposition prolongée à des températures élevées peut affecter l\'intégrité des composants du panneau.', ], solutionsTitle: 'Solutions', solutionsIntro: 'Bien que les pixels morts permanents nécessitent souvent le remplacement du panneau, les pixels bloqués peuvent parfois être réparés:', solutionsList: [ 'Méthode de Pression Douce: Appliquer une pression très douce et contrôlée (avec un chiffon) sur le pixel bloqué pour réaligner le cristal liquide.', 'Software de Cyclage Rapide: Utiliser un logiciel qui fait rapidement passer le pixel par différentes couleurs, ce qui peut "débloquer" le transistor.', 'Garantie: Si votre écran est neuf, contactez le fabricant. Beaucoup offrent un remplacement si le nombre de pixels morts dépasse un seuil (la classe de qualité de l\'écran).', ], copyright: 'Copyright © 2024 Détecteur de Pixels Morts', privacy: 'Politique de Confidentialité', terms: 'Conditions d\'Utilisation', disclaimer: 'Avis de Non-responsabilité', contact: 'Contact', colorNames: ['Blanc', 'Bleu', 'Vert', 'Rouge', 'Noir']
+                },
+                'it': {
+                    title: 'Rilevatore di Pixel Morti', intro: 'Controlla il tuo schermo con il nostro test rapido ed efficiente.', startButton: 'Avvia Test', quickTestTitle: 'Test Rapido per Colore', infoTitle: 'Cos\'è un Pixel Morto?', defTitle: 'Definizione', defContent: 'Un pixel morto è un punto minuscolo su uno schermo LCD o LED che non si illumina correttamente. Un pixel è composto da tre sub-pixel (rosso, verde e blu). Se un pixel è completamente spento (nero o invisibile), è un pixel morto. Se è permanentemente bloccato su un singolo colore (ad esempio, verde brillante), è noto come pixel bloccato (stuck pixel).', causesTitle: 'Cause', causesList: [ 'Guasto del Transistor: Ogni sub-pixel è controllato da un transistor. Se questo transistor si guasta, il sub-pixel non può ricevere l\'energia necessaria, rimanendo spento.', 'Problemi di Fabbricazione: Difetti microscopici durante il processo di produzione del pannello.', 'Danno Fisico: Una pressione eccessiva sullo schermo può danneggiare i cristalli liquidi o i circuiti sottostanti.', 'Calore Eccessivo: L\'esposizione prolungata a temperature elevate può compromettere l\'integrità dei componenti del pannello.', ], solutionsTitle: 'Soluzioni', solutionsIntro: 'Mentre i pixel permanentemente morti spesso richiedono la sostituzione del pannello, i pixel bloccati a volte possono essere riparati:', solutionsList: [ 'Metodo della Pressione Delicata: Applicare una pressione molto delicata e controllata (con un panno) sul pixel bloccato per riallineare il cristallo liquido.', 'Software a Ciclo Rapido: Utilizzare software che fa cambiare rapidamente il pixel tra i colori, il che può "sbloccare" il transistor.', 'Garantia: Se lo schermo è nuovo, contatta il produttore. Molti offrono la sostituzione se il numero di pixel morti supera una soglia (la classe di qualità dello schermo).', ], copyright: 'Copyright © 2024 Rilevatore di Pixel Morti', privacy: 'Informativa sulla Privacy', terms: 'Termini di Utilizzo', disclaimer: 'Dichiarazione di Non Responsabilità', contact: 'Contatto', colorNames: ['Bianco', 'Blu', 'Verde', 'Rosso', 'Nero']
+                },
+                'de': {
+                    title: 'Defekter-Pixel-Detektor', intro: 'Überprüfen Sie Ihren Bildschirm mit unserem schnellen und effizienten Test.', startButton: 'Test Starten', quickTestTitle: 'Schnelltest nach Farbe', infoTitle: 'Was ist ein Defekter Pixel?', defTitle: 'Definition', defContent: 'Ein defekter Pixel ist ein winziger Punkt auf einem LCD- oder LED-Bildschirm, der nicht richtig leuchtet. Ein Pixel besteht aus drei Subpixeln (rot, grün und blau). Wenn ein Pixel vollständig ausgeschaltet ist (schwarz oder unsichtbar), spricht man von einem toten Pixel. Wenn er dauerhaft in einer einzigen Farbe leuchtet (z. B. leuchtendes Grün), wird er als festsitzender Pixel (stuck pixel) bezeichnet.', causesTitle: 'Ursachen', causesList: [ 'Transistorausfall: Jedes Subpixel wird von einem Transistor gesteuert. Fällt dieser Transistor aus, kann das Subpixel nicht die nötige Energie erhalten und bleibt ausgeschaltet.', 'Herstellungsprobleme: Mikroskopische Defekte während des Produktionsprozesses des Panels.', 'Physische Beschädigung: Übermäßiger Druck auf den Bildschirm kann die Flüssigkristalle oder die darunter liegende Schaltung beschädigen.', 'Übermäßige Hitze: Längere Einwirkung hoher Temperaturen kann die Integrität der Panel-Komponenten beeinträchtigen.', ], solutionsTitle: 'Lösungen', solutionsIntro: 'Während dauerhaft defekte Pixel oft einen Austausch des Panels erfordern, können festsitzende Pixel manchmal repariert werden:', solutionsList: [ 'Sanfte Druckmethode: Wenden Sie sehr sanften, kontrollierten Druck (mit einem Tuch) auf den festsitzenden Pixel an, um den Flüssigkristall neu auszurichten.', 'Schnelle Zyklus-Software: Verwenden Sie Software, die den Pixel schnell zwischen Farben wechseln lässt, was den Transistor "lösen" kann.', 'Garantie: Wenn Ihr Bildschirm neu ist, wenden Sie sich an den Hersteller. Viele bieten Ersatz an, wenn die Anzahl der defekten Pixel einen Schwellenwert (die Bildschirmqualitätsklasse) überschreitet.', ], copyright: 'Copyright © 2024 Defekter-Pixel-Detektor', privacy: 'Datenschutzrichtlinie', terms: 'Nutzungsbedingungen', disclaimer: 'Haftungsausschluss', contact: 'Kontakt', colorNames: ['Weiß', 'Blau', 'Grün', 'Rot', 'Schwarz']
+                },
+                'ru': {
+                    title: 'Детектор битых пикселей', intro: 'Проверьте свой экран с помощью нашего быстрого и эффективного теста.', startButton: 'Начать Тест', quickTestTitle: 'Быстрый Тест по Цвету', infoTitle: 'Что такое битый пиксель?', defTitle: 'Определение', defContent: 'Битый пиксель — это крошечная точка на ЖК- или LED-экране, которая не светится должным образом. Пиксель состоит из трех субпикселей (красного, зеленого и синего). Если пиксель полностью выключен (черный или невидимый), это мертвый пиксель. Если он постоянно застрял на одном цвете (например, ярко-зеленом), это называется застрявшим пикселем.', causesTitle: 'Причины', causesList: [ 'Выход из строя транзистора: Каждый субпиксель управляется транзистором. Если этот транзистор выходит из строя, субпиксель не может получить необходимую энергию и остается выключенным.', 'Проблемы производства: Микроскопические дефекты в процессе изготовления панели.', 'Физическое повреждение: Чрезмерное давление на экран может повредить жидкие кристаллы или нижележащие схемы.', 'Чрезмерное тепло: Длительное воздействие высоких температур может повлиять на целостность компонентов панели.', ], solutionsTitle: 'Решения', solutionsIntro: 'Хотя постоянно мертвые пиксели часто требуют замены панели, застрявшие пиксели иногда можно исправить:', solutionsList: [ 'Метод мягкого давления: Приложите очень легкое, контролируемое давление (через ткань) на застрявший пиксель, чтобы изменить положение жидкого кристалла.', 'Программное обеспечение для быстрого цикла: Используйте программу, которая заставляет пиксель быстро переключаться между цветами, что может «разблокировать» транзистор.', 'Гарантия: Если ваш экран новый, свяжитесь с производителем. Многие предлагают замену, если количество мертвых пикселей превышает пороговое значение (класс качества экрана).', ], copyright: 'Copyright © 2024 Детектор битых пикселей', privacy: 'Политика конфиденциальности', terms: 'Условия использования', disclaimer: 'Отказ от ответственности', contact: 'Контакт', colorNames: ['Белый', 'Синий', 'Зеленый', 'Красный', 'Черный']
+                },
+                'uk': {
+                    title: 'Детектор битих пікселів', intro: 'Перевірте свій екран за допомогою нашого швидкого та ефективного тесту.', startButton: 'Розпочати Тест', quickTestTitle: 'Швидкий Тест за Кольором', infoTitle: 'Що таке битий піксель?', defTitle: 'Визначення', defContent: 'Битий піксель — це крихітна крапка на РК- або LED-екрані, яка не світиться належним чином. Піксель складається з трьох субпікселів (червоного, зеленого та синього). Якщо піксель повністю вимкнений (чорний або невидимий), це мертвий піксель. Якщо він постійно застряг на одному кольорі (наприклад, яскраво-зеленому), це називається застряглим пікселем.', causesTitle: 'Причини', causesList: [ 'Несправність транзистора: Кожен субпіксель контролюється транзистором. Якщо цей транзистор виходить з ладу, субпіксель не може отримати необхідну енергію і залишається вимкненим.', 'Проблеми виробництва: Мікроскопічні дефекти під час процесу виготовлення панелі.', 'Фізичне пошкодження: Надмірний тиск на екран може пошкодити рідкі кристали або нижні схеми.', 'Надмірне тепло: Тривалий вплив високих температур може вплинути на цілісність компонентів панелі.', ], solutionsTitle: 'Рішення', solutionsIntro: 'Хоча постійно мертві пікселі часто вимагають заміни панелі, застряглі пікселі іноді можна виправити:', solutionsList: [ 'Метод м\'якого тиску: Прикладіть дуже легкий, контрольований тиск (через тканину) на застряглий піксель, щоб змінити положення рідкого кристала.', 'Програмне забезпечення для швидкого циклу: Використовуйте програму, яка змушує піксель швидко перемикатися між кольорами, що може «розблокувати» транзистор.', 'Гарантія: Якщо ваш екран новий, зв\'яжіться з виробником. Багато пропонують заміну, якщо кількість битих пікселів перевищує порогове значення (клас якості екрана).', ], copyright: 'Copyright © 2024 Детектор битих пікселів', privacy: 'Політика конфіденційності', terms: 'Умови використання', disclaimer: 'Відмова від відповідальності', contact: 'Контакт', colorNames: ['Білий', 'Синій', 'Зелений', 'Червоний', 'Чорний']
                 }
-            });
+                // ... (Fin de las traducciones) ...
+            };
 
-            // Actualizar botones activos
-            document.querySelectorAll('.language-selector button').forEach(button => {
-                button.classList.remove('active');
-                if (button.getAttribute('data-lang') === lang) {
-                    button.classList.add('active');
-                }
-            });
-        }
+            // --- Elementos DOM y Estado Global ---
+            let currentLang = 'es';
+            let colorIndex = 0;
+            let isQuickTest = false;
+            const fullScreenElement = document.documentElement;
+            const overlay = document.getElementById('fullscreen-test-overlay');
+            const appContainer = document.getElementById('app-container');
 
-        // --- 3. EVENT LISTENERS PARA EL SELECTOR ---
-        document.getElementById('lang-es').addEventListener('click', () => setLanguage('es'));
-        document.getElementById('lang-en').addEventListener('click', () => setLanguage('en'));
+            // --- Funciones de Utilidad ---
 
-        // --- 4. LÓGICA DEL SISTEMA (HZ y PANTALLA COMPLETA) ---
-
-        // Función que se ejecuta al cargar la página (para asegurar la traducción inicial)
-        window.addEventListener('load', () => {
-            // Intenta detectar el idioma del navegador por primera vez (opcional)
-            // const browserLang = navigator.language.split('-')[0];
-            // if (translations[browserLang]) {
-            //     setLanguage(browserLang);
-            // } else {
-            //     setLanguage(currentLang);
-            // }
-            setLanguage(currentLang); // Usamos el idioma por defecto (ES) para simplicidad.
-        });
-
-        // 4.1. SISTEMA DE HZ
-        let lastTime = performance.now();
-        let frames = 0;
-        const hzElement = document.getElementById('hz-counter');
-
-        function updateHz() {
-            const now = performance.now();
-            frames++;
-            if (now - lastTime >= 1000) {
-                hzElement.innerText = frames + " Hz";
-                frames = 0;
-                lastTime = now;
-            }
-            requestAnimationFrame(updateHz);
-        }
-        requestAnimationFrame(updateHz);
-
-        // 4.2. SISTEMA DE TEST DE PANTALLA
-        const overlay = document.getElementById('test-overlay');
-        const body = document.body;
-
-        window.startTest = function(color) { // Hacemos la función global
-            overlay.style.backgroundColor = color;
-            overlay.style.display = 'block';
-            body.classList.add('no-scroll');
-
-            if (document.documentElement.requestFullscreen) {
-                document.documentElement.requestFullscreen().catch(err => {
-                    console.log("El usuario canceló o bloqueó fullscreen");
+            /**
+             * Oculta el contenido principal, activa la superposición y solicita pantalla completa.
+             * La solicitud de pantalla completa DEBE ocurrir directamente desde un evento de usuario.
+             * @param {string} color - El color inicial para la prueba.
+             */
+            function enterTestMode(color) {
+                // 1. Ocultar la UI principal y activar el overlay
+                document.body.classList.add('no-scroll');
+                appContainer.style.display = 'none';
+                overlay.style.backgroundColor = color;
+                overlay.classList.add('active');
+                
+                // 2. Solicitar pantalla completa (Debe ser llamado sincrónicamente desde el click del usuario)
+                fullScreenElement.requestFullscreen().catch(err => {
+                    // console.error(`Error intentando la pantalla completa: ${err.message}`);
+                    // Si falla (por ejemplo, si no hay interacción del usuario), el test se ejecuta sin fullscreen.
                 });
             }
-        }
 
-        function stopTest() {
-            overlay.style.display = 'none';
-            body.classList.remove('no-scroll');
+            /**
+             * Sale del modo prueba y restablece la UI.
+             */
+            function exitTestMode() {
+                document.body.classList.remove('no-scroll');
+                overlay.classList.remove('active');
+                appContainer.style.display = 'flex'; // Muestra la UI principal
+                
+                // Si estamos en modo fullscreen, salimos.
+                if (document.fullscreenElement) {
+                    document.exitFullscreen();
+                }
 
-            if (document.fullscreenElement) {
-                document.exitFullscreen().catch(err => console.log(err));
+                colorIndex = 0; // Reinicia el índice del test principal
+                isQuickTest = false; // Reinicia el modo de prueba rápida
             }
-        }
+            
+            // --- Lógica del Test Principal (Ciclo de Colores) ---
 
-        overlay.addEventListener('click', stopTest);
-        
-        document.addEventListener('keydown', (e) => {
-            if (e.key === "Escape") stopTest();
-        });
-        
-        document.addEventListener('fullscreenchange', () => {
-            if (!document.fullscreenElement) {
-                overlay.style.display = 'none';
-                body.classList.remove('no-scroll');
+            document.getElementById('start-test-button').addEventListener('click', () => {
+                isQuickTest = false;
+                colorIndex = 0;
+                enterTestMode(COLORS[colorIndex]);
+            });
+
+            // Manejador de clics para la prueba en pantalla completa
+            overlay.addEventListener('click', () => {
+                if (overlay.classList.contains('active')) {
+                    if (isQuickTest) {
+                        // Clic en modo Prueba Rápida: Salir
+                        exitTestMode();
+                    } else {
+                        // Clic en modo Test Principal: Cambiar color
+                        colorIndex++;
+                        if (colorIndex < COLORS.length) {
+                            overlay.style.backgroundColor = COLORS[colorIndex];
+                        } else {
+                            // Todos los colores mostrados, terminar la prueba
+                            exitTestMode();
+                        }
+                    }
+                }
+            });
+
+            // Manejador del botón ESC para salir de cualquier prueba
+            document.addEventListener('keydown', (e) => {
+                // Si la tecla es 'Escape' Y la prueba está activa
+                if (e.key === 'Escape' && overlay.classList.contains('active')) {
+                    exitTestMode();
+                }
+            });
+
+            // Restablecer la UI si se sale de fullscreen por el navegador/OS
+            document.addEventListener('fullscreenchange', () => {
+                // Si se sale de fullscreen (document.fullscreenElement es null) y el overlay sigue activo
+                if (!document.fullscreenElement && overlay.classList.contains('active')) {
+                    exitTestMode();
+                }
+            });
+
+            // --- Lógica de Prueba Rápida por Círculos ---
+            
+            const circlesContainer = document.getElementById('color-circles-container');
+            COLORS.forEach((color, index) => {
+                const circle = document.createElement('div');
+                circle.className = 'color-circle group flex items-center justify-center relative';
+                circle.style.backgroundColor = color;
+                
+                // Tooltip para el nombre del color
+                const tooltip = document.createElement('span');
+                tooltip.className = 'absolute bottom-full mb-2 px-2 py-1 bg-gray-800 text-white text-xs rounded opacity-0 group-hover:opacity-100 transition-opacity duration-300 pointer-events-none whitespace-nowrap';
+                tooltip.id = `color-name-${index}`;
+                
+                circle.appendChild(tooltip);
+                
+                circle.addEventListener('click', () => {
+                    isQuickTest = true; // Activa el modo de prueba rápida (clic para salir)
+                    enterTestMode(color);
+                });
+                circlesContainer.appendChild(circle);
+            });
+
+
+            // --- Lógica de Internacionalización (i18n) ---
+
+            /**
+             * Actualiza todos los textos de la interfaz al idioma seleccionado.
+             * @param {string} lang - Código de idioma ('es', 'en', etc.)
+             */
+            function setLanguage(lang) {
+                if (!translations[lang]) return;
+                currentLang = lang;
+                const t = translations[lang];
+
+                // Header
+                document.getElementById('page-title').textContent = t.title;
+                document.getElementById('header-title').textContent = t.title;
+
+                // Sección Central
+                document.getElementById('test-intro').textContent = t.intro;
+                document.getElementById('start-test-button').textContent = t.startButton;
+                document.getElementById('quick-test-title').textContent = t.quickTestTitle;
+                
+                // Contenido Informativo
+                document.getElementById('info-title').textContent = t.infoTitle;
+                document.getElementById('def-title').textContent = t.defTitle;
+                document.getElementById('def-content').textContent = t.defContent;
+                document.getElementById('causes-title').textContent = t.causesTitle;
+                document.getElementById('solutions-title').textContent = t.solutionsTitle;
+                document.getElementById('solutions-intro').textContent = t.solutionsIntro;
+
+                // Listas (Causas)
+                const causesListEl = document.getElementById('causes-list');
+                causesListEl.innerHTML = t.causesList.map(item => `<li>${item}</li>`).join('');
+
+                // Listas (Soluciones)
+                const solutionsListEl = document.getElementById('solutions-list');
+                solutionsListEl.innerHTML = t.solutionsList.map(item => `<li>${item}</li>`).join('');
+
+                // Tooltips de Colores
+                t.colorNames.forEach((name, index) => {
+                    const tooltipEl = document.getElementById(`color-name-${index}`);
+                    if (tooltipEl) {
+                        tooltipEl.textContent = name;
+                    }
+                });
+
+                // Footer
+                document.getElementById('footer-copyright').textContent = t.copyright;
+                document.getElementById('footer-privacy').textContent = t.privacy;
+                document.getElementById('footer-terms').textContent = t.terms;
+                document.getElementById('footer-disclaimer').textContent = t.disclaimer;
+                document.getElementById('footer-contact').textContent = t.contact;
+                
+                // Actualizar atributo lang del HTML
+                document.documentElement.lang = lang;
+                
+                // Almacenar preferencia de idioma
+                localStorage.setItem('pixelDetectorLang', lang);
+
+                // Actualizar estilo del selector (opcional: resaltar el idioma actual)
+                document.querySelectorAll('#language-selector button').forEach(btn => {
+                    if (btn.getAttribute('data-lang') === lang) {
+                        btn.classList.add('bg-blue-600', 'ring-2', 'ring-blue-400');
+                    } else {
+                        btn.classList.remove('bg-blue-600', 'ring-2', 'ring-blue-400');
+                    }
+                });
             }
+
+            // Crear selector de idiomas con banderas
+            const langSelector = document.getElementById('language-selector');
+            Object.keys(FLAGS).forEach(lang => {
+                const button = document.createElement('button');
+                button.className = 'text-xl hover:opacity-75 transition duration-150 p-1 rounded-md';
+                button.textContent = FLAGS[lang];
+                button.setAttribute('data-lang', lang);
+                button.addEventListener('click', () => setLanguage(lang));
+                langSelector.appendChild(button);
+            });
+
+            // Cargar idioma preferido o predeterminado del navegador
+            const savedLang = localStorage.getItem('pixelDetectorLang');
+            const browserLang = navigator.language.substring(0, 2);
+            // El idioma inicial será el guardado, el del navegador, o 'es' por defecto.
+            const initialLang = savedLang || (browserLang in translations ? browserLang : 'es');
+            
+            setLanguage(initialLang);
+
         });
     </script>
-
-
-
-
-
 </body>
 </html>
